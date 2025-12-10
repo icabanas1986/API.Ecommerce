@@ -1,0 +1,63 @@
+﻿using API.Ecommerce.Models;
+using API.Ecommerce.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using TPVY.API.Ecommerce.Data;
+
+namespace API.Ecommerce.Repositories
+{
+    public class ProductoRepository : IProductoRepository
+    {
+        private readonly ApplicationDbContext _context;
+
+        public ProductoRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<Producto>> ObtenerTodosAsync()
+        {
+            return await _context.Productos
+                .Include(p => p.Categoria)
+                .ToListAsync();
+        }
+
+        public async Task<Producto> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Productos
+                .Include(p => p.Categoria)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<Producto> CrearAsync(Producto producto)
+        {
+            _context.Productos.Add(producto);
+            await _context.SaveChangesAsync();
+            return producto;
+        }
+
+        public async Task ActualizarAsync(Producto producto)
+        {
+            _context.Entry(producto).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAsync(int id)
+        {
+            var producto = await _context.Productos.FindAsync(id);
+            if (producto != null)
+            {
+                _context.Productos.Remove(producto);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<Producto>> ObtenerPorCategoriaIdAsync(int idCategoria)
+        {
+            var producto = await _context.Productos
+                .Include(p => p.Categoria)
+                .Where(p => p.CategoriaId == idCategoria)
+                .ToListAsync();
+            return producto;
+        }
+    }
+}
