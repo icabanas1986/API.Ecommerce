@@ -130,7 +130,11 @@ namespace API.Ecommerce.Services
 
         public async Task<List<UsuariosAuth>> ObtenerUsuarios()
         {
-            return await _repository.ObtenerUsuarios();
+            var users =  await _repository.ObtenerUsuarios();
+            var roles = await _rolServices.ObtenerTodosAsync();
+            var rol = roles.Where(r => r.Nombre == "Cliente").FirstOrDefault();
+            users = users.Where(u => u.Rol.Id != rol.Id).ToList();
+            return users;
         }
         private string GenerarToken(UsuariosAuth usuario)
         {

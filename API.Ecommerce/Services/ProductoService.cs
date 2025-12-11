@@ -14,18 +14,12 @@ namespace API.Ecommerce.Services
         private readonly IProductoRepository _productoRepository;
         private readonly IProductoImagenesRepository _productoImagenesRepository;
         private readonly ILogger<ProductoService> _logger;
-        private readonly IImgServices _imgServices;
-        private readonly IHttpContextAccessor _HttpContextAccessor;
-        private readonly Encrypt _encyrpt;
         public ProductoService(IProductoRepository productoRepository, IProductoImagenesRepository productoImagenesRepository,
             ILogger<ProductoService> logger, IImgServices imgServices, IHttpContextAccessor httpContext)
         {
             _productoRepository = productoRepository;
             _productoImagenesRepository = productoImagenesRepository;
             _logger = logger;
-            _imgServices = imgServices;
-            _HttpContextAccessor = httpContext;
-            _encyrpt = new Encrypt();
         }
 
         public async Task<List<ObtieneProductoDTO>> ObtenerTodosAsync([FromServices] IWebHostEnvironment env)

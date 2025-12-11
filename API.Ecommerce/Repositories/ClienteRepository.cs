@@ -24,7 +24,7 @@ namespace API.Ecommerce.Repositories
 
         public async Task<(IEnumerable<Cliente> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search)
         {
-            var query = _context.Clientes.AsNoTracking();
+            var query = _context.Clientes.AsNoTracking().Where(c=>c.UsuarioAuth.Rol.Nombre=="Cliente");
 
             if (!string.IsNullOrWhiteSpace(search))
             {
