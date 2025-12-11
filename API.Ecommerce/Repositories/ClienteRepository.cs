@@ -68,6 +68,7 @@ namespace API.Ecommerce.Repositories
 
         public async Task<Cliente> UpdateAsync(Cliente cliente)
         {
+            //Comentario para test
             _context.Clientes.Update(cliente);
             await _context.SaveChangesAsync();
             return cliente;
