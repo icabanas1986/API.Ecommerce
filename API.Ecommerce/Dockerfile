@@ -1,4 +1,4 @@
-# Imagen base
+# Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -7,15 +7,15 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copiar el csproj
-COPY API.Ecommerce.csproj ./
+# Copiar proyecto
+COPY API.Ecommerce.csproj .
 RUN dotnet restore
 
-# Copiar el resto del código
+# Copiar todo el código
 COPY . .
 RUN dotnet publish -c Release -o /app/publish
 
-# Runtime
+# Final
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
