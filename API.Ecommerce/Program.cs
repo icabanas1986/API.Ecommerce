@@ -15,10 +15,8 @@ using TPVY.API.Ecommerce.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(8080);
-});
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
 
 // ================= JWT CONFIG =================
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
