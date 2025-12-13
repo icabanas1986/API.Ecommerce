@@ -1,4 +1,5 @@
-﻿using API.Ecommerce.Models.Auth;
+﻿using API.Ecommerce.DTOs.Cliente;
+using API.Ecommerce.Models.Auth;
 
 namespace API.Ecommerce.Data.Repository
 {
@@ -11,6 +12,6 @@ namespace API.Ecommerce.Data.Repository
         Task<bool> EliminaUsuario(int id);
 
         Task<bool> ActualizaUsuario(UsuariosAuth auth);
-        Task<List<UsuariosAuth>> ObtenerUsuarios();
+        Task<List<ClienteConRolDto>> ObtenerUsuarios();
     }
 }

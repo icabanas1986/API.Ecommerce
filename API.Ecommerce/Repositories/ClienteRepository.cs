@@ -55,7 +55,12 @@ namespace API.Ecommerce.Repositories
 
         public async Task<Cliente?> GetByEmailAsync(string email)
         {
-            //return await _context.Clientes.FirstOrDefaultAsync(c => c.Correo == email);
+            var auth = await _context.UsuariosAuth.FirstOrDefaultAsync(u => u.Email == email);
+            if (auth != null)
+            {
+                return await _context.Clientes.FirstOrDefaultAsync(c => c.IdAuth == auth.Id);
+            }
+
             return new Cliente();
         }
 

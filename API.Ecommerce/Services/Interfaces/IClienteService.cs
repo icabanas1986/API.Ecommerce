@@ -1,4 +1,5 @@
 ﻿using API.Ecommerce.DTOs.Cliente;
+using API.Ecommerce.Models;
 
 namespace API.Ecommerce.Services.Interfaces
 {
@@ -10,5 +11,6 @@ namespace API.Ecommerce.Services.Interfaces
         Task<ClienteDto> CreateAsync(ClienteCreateDto dto, int idAuth);
         Task<ClienteDto?> UpdateAsync(ClienteUpdateDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<Cliente?> GetByEmailAsync(string email);
     }
 }

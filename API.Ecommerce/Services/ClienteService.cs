@@ -80,6 +80,10 @@ namespace API.Ecommerce.Services
             return MapToDto(actualizado);
         }
 
+        public async Task<Cliente?> GetByEmailAsync(string email)
+        {
+            return await _repo.GetByEmailAsync(email);
+        }
         public async Task<bool> DeleteAsync(int id)
         {
             return await _repo.DeleteAsync(id);

@@ -27,7 +27,6 @@ namespace API.Ecommerce.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
         [Route("Crear")]
         public async Task<IActionResult> Create(CreaCategoriaDTO categoria)
         {
@@ -36,7 +35,6 @@ namespace API.Ecommerce.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Update(int id, ActualizaCategoriaDTO categoria)
         {
             if (id != categoria.IdCategoria) return BadRequest();
@@ -45,7 +43,6 @@ namespace API.Ecommerce.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.EliminarCategoria(id);

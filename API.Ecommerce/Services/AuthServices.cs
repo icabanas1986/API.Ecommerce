@@ -5,6 +5,7 @@ using API.Ecommerce.Models.Auth;
 using API.Ecommerce.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 using System.Text;
 
@@ -102,13 +103,21 @@ namespace API.Ecommerce.Services
             return "Usuario registrado correctamente.";
         }
 
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<ObtieneClienteDTO> LoginAsync(string email, string password)
         {
+            ObtieneClienteDTO clienteDTO = new ObtieneClienteDTO();
             var usuario = await _repository.GetByEmailAsync(email);
             if (usuario == null || !BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
                 throw new Exception("Credenciales inválidas.");
 
-            return GenerarToken(usuario);
+            clienteDTO.token = GenerarToken(usuario);
+            var cliente = await _clienteService.GetByEmailAsync(email);
+            clienteDTO.nombre = cliente.Nombre;
+            clienteDTO.apellidoP = cliente.ApellidoPaterno;
+            clienteDTO.apellidoM = cliente.ApellidoMaterno;
+            clienteDTO.idPerfil = usuario.Rol.Id.ToString();
+            clienteDTO.Perfil = usuario.Rol.Nombre;
+            return clienteDTO;
         }
 
         public async Task<bool> EliminaUsuario(int id)
@@ -128,13 +137,9 @@ namespace API.Ecommerce.Services
             return await _repository.ActualizaUsuario(usuarios);
         }
 
-        public async Task<List<UsuariosAuth>> ObtenerUsuarios()
+        public async Task<List<ClienteConRolDto>> ObtenerUsuarios()
         {
-            var users =  await _repository.ObtenerUsuarios();
-            var roles = await _rolServices.ObtenerTodosAsync();
-            var rol = roles.Where(r => r.Nombre == "Cliente").FirstOrDefault();
-            users = users.Where(u => u.Rol.Id != rol.Id).ToList();
-            return users;
+            return await _repository.ObtenerUsuarios();
         }
         private string GenerarToken(UsuariosAuth usuario)
         {

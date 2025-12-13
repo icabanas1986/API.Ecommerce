@@ -26,7 +26,7 @@ namespace API.Ecommerce.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var token = await _authService.LoginAsync(dto.Email, dto.Password);
-            return Ok(new { token });
+            return Ok(new { data = token });
         }
 
         [HttpPut("update")]

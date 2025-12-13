@@ -9,6 +9,7 @@
         public string? Telefono { get; set; }
         public string? Direccion { get; set; }
         public string? RazonSocial { get; set; }
+        public int IdAuth { get; set; }
         public bool Activo { get; set; }
         public DateTime FechaRegistro { get; set; }
     }

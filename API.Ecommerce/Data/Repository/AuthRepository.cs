@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+﻿using API.Ecommerce.DTOs.Cliente;
 using API.Ecommerce.Models.Auth;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
 using TPVY.API.Ecommerce.Data;
 
 namespace API.Ecommerce.Data.Repository
@@ -117,9 +119,31 @@ namespace API.Ecommerce.Data.Repository
             return actualizado;
         }
 
-        public async Task<List<UsuariosAuth>> ObtenerUsuarios()
+        public async Task<List<ClienteConRolDto>> ObtenerUsuarios()
         {
-            return await _context.UsuariosAuth.Include(u => u.Rol).ToListAsync();
+            var resultado = _context.Clientes
+             .Where(c => c.UsuarioAuth.Rol.Nombre != "Cliente")
+             .Select(c => new
+             {
+                 c.Id,
+                 c.Nombre,
+                 c.ApellidoPaterno,
+                 c.ApellidoMaterno,
+                 Email = c.UsuarioAuth.Email,
+                 RolId = c.UsuarioAuth.Rol.Id,
+                 RolNombre = c.UsuarioAuth.Rol.Nombre
+             })
+             .ToList();
+            return resultado.Select(z => new ClienteConRolDto()
+            {
+                Id = z.Id,
+                Nombre = z.Nombre,
+                ApellidoPaterno = z.ApellidoMaterno,
+                ApellidoMaterno = z.ApellidoMaterno,
+                Email = z.Email,
+                RolId = z.RolId,
+                RolNombre = z.RolNombre
+            }).ToList();
         }
     }
 }
