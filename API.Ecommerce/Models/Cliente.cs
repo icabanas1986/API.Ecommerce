@@ -23,5 +23,7 @@ namespace API.Ecommerce.Models
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
         public int IdAuth { get; set; }
         public UsuariosAuth? UsuarioAuth { get; set; }
+
+        public ICollection<DireccionCliente> Direcciones { get; set; } = new List<DireccionCliente>();
     }
 }

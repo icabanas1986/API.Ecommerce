@@ -8,5 +8,6 @@
         public string apellidoM { get; set; }
         public string idPerfil { get; set; }
         public string Perfil { get; set; }
+        public int UserId { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using API.Ecommerce.DTOs.Cliente;
+using API.Ecommerce.Models;
 using API.Ecommerce.Models.Auth;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,6 +15,7 @@ namespace API.Ecommerce.Data.Repository
         {
             _context = new ApplicationDbContext();
         }
+
 
         public async Task<int> RegistraUsuario(UsuariosAuth auth)
         {
@@ -79,10 +81,18 @@ namespace API.Ecommerce.Data.Repository
 
         public async Task<bool> EliminaUsuario(int id)
         {
+            int idAuth = 0;
             bool eliminado = false;
             try
             {
-                var user = await _context.UsuariosAuth.FindAsync(id);
+                var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
+                if (cliente != null)
+                {
+                    idAuth = cliente.IdAuth;
+                    _context.Clientes.Remove(cliente);
+                    await _context.SaveChangesAsync();
+                }
+                var user = await _context.UsuariosAuth.FindAsync(idAuth);
                 if (user != null)
                 {
                     _context.UsuariosAuth.Remove(user);
@@ -100,18 +110,23 @@ namespace API.Ecommerce.Data.Repository
             return eliminado;
         }
 
-        public async Task<bool> ActualizaUsuario(UsuariosAuth auth)
+        public async Task<bool> ActualizaUsuario(UsuariosAuth auth,Cliente cliente)
         {
             bool actualizado = false;
             try
             {
                 _context.UsuariosAuth.Update(auth);
+
+                _context.Clientes.Update(cliente);
+
+
                 int res = await _context.SaveChangesAsync();
                 if (res > 0)
                 {
                     actualizado = true;
                 }
             }
+            
             catch (Exception ex)
             {
                 actualizado = false;
@@ -138,7 +153,7 @@ namespace API.Ecommerce.Data.Repository
             {
                 Id = z.Id,
                 Nombre = z.Nombre,
-                ApellidoPaterno = z.ApellidoMaterno,
+                ApellidoPaterno = z.ApellidoPaterno,
                 ApellidoMaterno = z.ApellidoMaterno,
                 Email = z.Email,
                 RolId = z.RolId,

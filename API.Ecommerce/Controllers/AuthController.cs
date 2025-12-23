@@ -30,9 +30,9 @@ namespace API.Ecommerce.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] UserDto dto)
+        public async Task<IActionResult> Update([FromBody] ClienteUpdateDto dto)
         {
-            var result = await _authService.ActualizaUsuario(dto.Id, dto.Nombre, dto.Email, dto.RolId, dto.Password);
+            var result = await _authService.ActualizaUsuario(dto);
             return Ok(new { message = result });
         }
 

@@ -15,8 +15,8 @@ using TPVY.API.Ecommerce.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+//builder.WebHost.UseUrls($"http://*:{port}");
 
 // ================= JWT CONFIG =================
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
@@ -68,6 +68,10 @@ builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IDireccionClienteRepository, DireccionClienteRepository>();
+builder.Services.AddScoped<IDireccionClienteService, DireccionClienteService>();
+builder.Services.AddScoped<ICarritoService, CarritoService>();
+builder.Services.AddScoped<ICarritoRepository,CarritoRepository>();
 
 
 builder.Services.AddHttpContextAccessor();

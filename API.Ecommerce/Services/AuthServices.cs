@@ -1,6 +1,7 @@
 ﻿using API.Ecommerce.Data.Repository;
 using API.Ecommerce.DTOs.Cliente;
 using API.Ecommerce.DTOs.Rol;
+using API.Ecommerce.Models;
 using API.Ecommerce.Models.Auth;
 using API.Ecommerce.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
@@ -38,26 +39,28 @@ namespace API.Ecommerce.Services
             if (await _repository.ObtieneUsuarioPorCorreo(dto.Correo))
                 throw new Exception("El correo ya está registrado.");
 
-            //Buscamos el rol de cliente, si no existe lo creamos
-            var rolCliente = await _rolServices.ObtenerTodosAsync();
-            if (!rolCliente.Any(r => r.Nombre == "Cliente"))
+            if(dto.rolId==0)
             {
-                RegistrerRolDTO rolDTO = new RegistrerRolDTO
+                //Buscamos el rol de cliente, si no existe lo creamos
+                var rolCliente = await _rolServices.ObtenerTodosAsync();
+                if (!rolCliente.Any(r => r.Nombre == "Cliente"))
                 {
-                    Nombre = "Cliente"
-                };
-                rolCreado = await _rolServices.CrearAsync(rolDTO);
+                    RegistrerRolDTO rolDTO = new RegistrerRolDTO
+                    {
+                        Nombre = "Cliente"
+                    };
+                    rolCreado = await _rolServices.CrearAsync(rolDTO);
+                }
+                else
+                {
+                    rolCreado = rolCliente.First(r => r.Nombre == "Cliente");
+                }
             }
-            else
-            {
-                rolCreado = rolCliente.First(r => r.Nombre == "Cliente");
-            }
-
             var usuario = new UsuariosAuth
             {
                 Email = dto.Correo,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.password),
-                RolId = rolCreado.Id
+                RolId = dto.rolId==0?rolCreado.Id:dto.rolId
             };
 
             var idAuth = await _repository.RegistraUsuario(usuario);
@@ -117,6 +120,7 @@ namespace API.Ecommerce.Services
             clienteDTO.apellidoM = cliente.ApellidoMaterno;
             clienteDTO.idPerfil = usuario.Rol.Id.ToString();
             clienteDTO.Perfil = usuario.Rol.Nombre;
+            clienteDTO.UserId = cliente.Id;
             return clienteDTO;
         }
 
@@ -125,16 +129,27 @@ namespace API.Ecommerce.Services
             return await _repository.EliminaUsuario(id);
         }
 
-        public async Task<bool> ActualizaUsuario(int Id, string Nombre, string Email, int RolId, string Password)
+        public async Task<bool> ActualizaUsuario(ClienteUpdateDto dto)
         {
+            var clienteExiste = await _clienteService.GetByIdAsync(dto.Id);
+            Cliente cliente = new Cliente()
+            {
+                Id = dto.Id,
+                Nombre = dto.Nombre,
+                ApellidoPaterno = dto.ApellidoPaterno,
+                ApellidoMaterno = dto.ApellidoMaterno,
+                Telefono = dto.Telefono,
+                Activo = dto.Activo
+            };
+
             UsuariosAuth usuarios = new UsuariosAuth()
             {
-                Id = Id,
-                Email = Email,
-                RolId = RolId,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password)
+                Id = clienteExiste.IdAuth,
+                Email = dto.Correo,
+                RolId = dto.rolId,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.password)
             };
-            return await _repository.ActualizaUsuario(usuarios);
+            return await _repository.ActualizaUsuario(usuarios,cliente);
         }
 
         public async Task<List<ClienteConRolDto>> ObtenerUsuarios()

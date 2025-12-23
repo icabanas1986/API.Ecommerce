@@ -10,7 +10,7 @@ namespace API.Ecommerce.Services.Interfaces
 
         Task<bool> EliminaUsuario(int id);
 
-        Task<bool> ActualizaUsuario(int Id, string Nombre, string Email, int RolId, string Password);
+        Task<bool> ActualizaUsuario(ClienteUpdateDto dto);
 
         Task<List<ClienteConRolDto>> ObtenerUsuarios();
         Task<string> RegisterClienteAsync(ClienteCreateDto dto);

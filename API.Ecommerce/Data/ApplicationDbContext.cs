@@ -92,6 +92,16 @@ namespace TPVY.API.Ecommerce.Data
         .HasForeignKey(p => p.EstatusId)
         .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<DireccionCliente>()
+        .HasOne(d => d.Cliente)
+        .WithMany(c => c.Direcciones)
+        .HasForeignKey(d => d.ClienteId)
+        .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Carrito>()
+    .HasMany(c => c.Items)
+    .WithOne(i => i.Carrito)
+    .HasForeignKey(i => i.CarritoId);
+
             modelBuilder.Entity<PedidoEstatus>().HasData(
        new PedidoEstatus { Id = 1, Nombre = "Pendiente", ColorHex = "#FFA500", Activo = true },
        new PedidoEstatus { Id = 2, Nombre = "Pagado", ColorHex = "#28A745", Activo = true },
@@ -112,5 +122,17 @@ namespace TPVY.API.Ecommerce.Data
         public DbSet<Pago> Pagos { get; set; }
         public DbSet<PagoDetalle> PagoDetalles { get; set; }
         public DbSet<PedidoEstatus> PedidoEstatuses { get; set; }
+        public DbSet<Carrito> Carrito
+        {
+            get; set;
+        }
+        public DbSet<CarritoItem> CarritoItem
+        {
+            get; set;
+        }
+        public DbSet<DireccionCliente> DireccionesCliente
+        {
+            get; set;
+        }
     }
 }

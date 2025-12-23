@@ -1,4 +1,5 @@
 ﻿using API.Ecommerce.DTOs.Cliente;
+using API.Ecommerce.Models;
 using API.Ecommerce.Models.Auth;
 
 namespace API.Ecommerce.Data.Repository
@@ -11,7 +12,7 @@ namespace API.Ecommerce.Data.Repository
         Task<UsuariosAuth?> GetByEmailAsync(string email);
         Task<bool> EliminaUsuario(int id);
 
-        Task<bool> ActualizaUsuario(UsuariosAuth auth);
+        Task<bool> ActualizaUsuario(UsuariosAuth auth, Cliente cliente);
         Task<List<ClienteConRolDto>> ObtenerUsuarios();
     }
 }
