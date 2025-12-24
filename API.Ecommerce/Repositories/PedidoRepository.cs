@@ -7,75 +7,41 @@ namespace API.Ecommerce.Repositories
 {
     public class PedidoRepository : IPedidoRepository
     {
-        private readonly ApplicationDbContext _ctx;
+        private readonly ApplicationDbContext _context;
 
-        public PedidoRepository(ApplicationDbContext ctx) => _ctx = ctx;
-
-        public async Task<Pedido?> GetByIdAsync(int id)
+        public PedidoRepository(ApplicationDbContext context)
         {
-            return await _ctx.Pedidos
-                .Include(p => p.Cliente)
-                .Include(p => p.Detalles).ThenInclude(d => d.Producto)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            _context = context;
         }
 
-        public async Task<IEnumerable<Pedido>> GetByClienteAsync(int clienteId)
+        public async Task CrearAsync(Pedido pedido)
         {
-            return await _ctx.Pedidos
-                .Where(p => p.ClienteId == clienteId)
-                .Include(p => p.Detalles)
-                .ToListAsync();
+            await _context.Pedidos.AddAsync(pedido);
         }
 
-        public async Task<(IEnumerable<Pedido> Items, int Total)> GetPagedAsync(int page, int pageSize, DateTime? desde, DateTime? hasta, int? clienteId)
+        public async Task SaveChangesAsync()
         {
-            var q = _ctx.Pedidos
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Pedido>> ObtenerTodos()
+        {
+            return await _context.Pedidos
                 .Include(p => p.Cliente)
-                .Include(p => p.Detalles)
-                .AsQueryable();
-
-            if (clienteId.HasValue)
-                q = q.Where(p => p.ClienteId == clienteId.Value);
-
-            if (desde.HasValue)
-                q = q.Where(p => p.Fecha >= desde.Value);
-
-            if (hasta.HasValue)
-                q = q.Where(p => p.Fecha <= hasta.Value);
-
-            var total = await q.CountAsync();
-
-            var items = await q
+                .Include(p => p.Estatus)
                 .OrderByDescending(p => p.Fecha)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .ToListAsync();
-
-            return (items, total);
         }
 
-        public async Task<Pedido> AddAsync(Pedido pedido)
+        public async Task<List<Pedido>> ObtenerPorCliente(int clienteId)
         {
-            _ctx.Pedidos.Add(pedido);
-            await _ctx.SaveChangesAsync();
-            return pedido;
+            return await _context.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Estatus)
+                .Where(p => p.ClienteId == clienteId)
+                .OrderByDescending(p => p.Fecha)
+                .ToListAsync();
         }
 
-        public async Task<Pedido> UpdateAsync(Pedido pedido)
-        {
-            _ctx.Pedidos.Update(pedido);
-            await _ctx.SaveChangesAsync();
-            return pedido;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var pedido = await _ctx.Pedidos.FindAsync(id);
-            if (pedido == null) return false;
-
-            _ctx.Pedidos.Remove(pedido);
-            await _ctx.SaveChangesAsync();
-            return true;
-        }
     }
 }

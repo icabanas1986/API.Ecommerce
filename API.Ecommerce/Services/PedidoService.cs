@@ -2,115 +2,83 @@
 using API.Ecommerce.Models;
 using API.Ecommerce.Repositories.Interfaces;
 using API.Ecommerce.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using TPVY.API.Ecommerce.Data;
 
 namespace API.Ecommerce.Services
 {
     public class PedidoService : IPedidoService
     {
-        private readonly IPedidoRepository _repo;
-        private readonly ApplicationDbContext _ctx;
+        private readonly ICarritoRepository _carritoRepo;
+        private readonly IPedidoRepository _pedidoRepo;
+        private readonly ApplicationDbContext _context;
 
-        public PedidoService(IPedidoRepository repo, ApplicationDbContext ctx)
+        public PedidoService(
+            ICarritoRepository carritoRepo,
+            IPedidoRepository pedidoRepo,
+            ApplicationDbContext context)
         {
-            _repo = repo;
-            _ctx = ctx;
+            _carritoRepo = carritoRepo;
+            _pedidoRepo = pedidoRepo;
+            _context = context;
         }
 
-        public PedidoDto Map(Pedido p)
+        public async Task<PedidoResponseDTO> CrearDesdeCarrito(CrearPedidoDTO dto)
         {
-            return new PedidoDto
-            {
-                Id = p.Id,
-                ClienteId = p.ClienteId,
-                ClienteNombre = p.Cliente?.Nombre ?? "",
-                Fecha = p.Fecha,
-                Total = p.Total,
-                EstatusId = p.EstatusId,
-                EstatusNombre = p.Estatus?.Nombre ?? "",
-                EstatusColor = p.Estatus?.ColorHex,
-                Detalles = p.Detalles.Select(d => new PedidoDetalleDto
-                {
-                    Id = d.Id,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto?.Nombre ?? "",
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList()
-            };
-        }
+            var carrito = await _carritoRepo.ObtenerCarritoActivo(dto.ClienteId);
 
-        public async Task<PedidoDto?> GetByIdAsync(int id)
-        {
-            var pedido = await _repo.GetByIdAsync(id);
-            return pedido == null ? null : Map(pedido);
-        }
+            if (carrito == null || !carrito.Items.Any())
+                throw new Exception("El carrito está vacío");
 
-        public async Task<IEnumerable<PedidoDto>> GetByClienteAsync(int clienteId)
-        {
-            var pedidos = await _repo.GetByClienteAsync(clienteId);
-            return pedidos.Select(Map);
-        }
-
-        public async Task<(IEnumerable<PedidoDto> Items, int Total)> GetPagedAsync(int page, int pageSize, DateTime? desde, DateTime? hasta, int? clienteId)
-        {
-            var (items, total) = await _repo.GetPagedAsync(page, pageSize, desde, hasta, clienteId);
-            return (items.Select(Map), total);
-        }
-
-        public async Task<PedidoDto> CreateAsync(PedidoCreateDto dto)
-        {
-            var cliente = await _ctx.Clientes.FindAsync(dto.ClienteId);
-            if (cliente == null)
-                throw new InvalidOperationException("Cliente no encontrado");
+            // 🔹 Estatus inicial (Ej: Pendiente)
+            var estatusInicial = await _context.PedidoEstatuses
+                .FirstAsync(e => e.Nombre == "Pendiente");
 
             var pedido = new Pedido
             {
                 ClienteId = dto.ClienteId,
-                Fecha = DateTime.UtcNow
+                EstatusId = estatusInicial.Id,
+                Total = carrito.Items.Sum(i => i.Cantidad * i.PrecioUnitario)
             };
 
-            decimal total = 0;
-
-            foreach (var item in dto.Detalles)
+            foreach (var item in carrito.Items)
             {
-                var producto = await _ctx.Productos.FindAsync(item.ProductoId);
-                if (producto == null)
-                    throw new InvalidOperationException("Producto no encontrado");
-
-                var detalle = new PedidoDetalle
+                pedido.Detalles.Add(new PedidoDetalle
                 {
                     ProductoId = item.ProductoId,
                     Cantidad = item.Cantidad,
-                    PrecioUnitario = producto.Precio
-                };
-                pedido.Detalles.Add(detalle);
-
-                total += detalle.Subtotal;
+                    PrecioUnitario = item.PrecioUnitario
+                });
             }
 
-            pedido.Total = total;
+            // 🔹 Persistir pedido
+            await _pedidoRepo.CrearAsync(pedido);
 
-            var creado = await _repo.AddAsync(pedido);
+            // 🔹 Desactivar carrito
+            carrito.Activo = false;
 
-            return Map(creado);
+            await _pedidoRepo.SaveChangesAsync();
+
+            return MapearPedido(pedido);
         }
 
-        public async Task<PedidoDto?> UpdateAsync(PedidoUpdateDto dto)
+        private PedidoResponseDTO MapearPedido(Pedido pedido)
         {
-            var pedido = await _repo.GetByIdAsync(dto.Id);
-            if (pedido == null) return null;
-
-            pedido.ClienteId = dto.ClienteId;
-
-            var actualizado = await _repo.UpdateAsync(pedido);
-            return Map(actualizado);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            return await _repo.DeleteAsync(id);
+            return new PedidoResponseDTO
+            {
+                PedidoId = pedido.Id,
+                Fecha = pedido.Fecha,
+                Estatus = pedido.Estatus.Nombre,
+                Total = pedido.Total,
+                Detalles = pedido.Detalles.Select(d => new PedidoDetalleResponseDTO
+                {
+                    ProductoId = d.ProductoId,
+                    NombreProducto = d.Producto.Nombre,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Cantidad * d.PrecioUnitario
+                }).ToList()
+            };
         }
     }
 }

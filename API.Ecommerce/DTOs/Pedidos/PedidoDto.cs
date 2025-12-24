@@ -12,6 +12,6 @@
         public string EstatusNombre { get; set; } = string.Empty;
         public string? EstatusColor { get; set; }
 
-        public List<PedidoDetalleDto> Detalles { get; set; } = new();
+        public List<PedidoDetalleDTO> Detalles { get; set; } = new();
     }
 }

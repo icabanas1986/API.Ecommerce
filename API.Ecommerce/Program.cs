@@ -73,6 +73,10 @@ builder.Services.AddScoped<IDireccionClienteService, DireccionClienteService>();
 builder.Services.AddScoped<ICarritoService, CarritoService>();
 builder.Services.AddScoped<ICarritoRepository,CarritoRepository>();
 
+builder.Services.AddScoped<IPedidoConsultaService, PedidoConsultaService>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+
 
 builder.Services.AddHttpContextAccessor();
 
